@@ -1,22 +1,25 @@
+# frozen_string_literal: true
+
 require 'set'
 require 'json'
 
 filename = 'google-10000-english-no-swears.txt'
 
-def get_random_word
-  random_word = @words.sample
-  random_word.length.between?(5, 12) ? random_word : get_random_word
+def random_word
+  word = @words.sample
+  word.length.between?(5, 12) ? word : random_word
 end
 
 @words = File.readlines(filename).map(&:chomp)
-word = get_random_word
+word = random_word
 
+# This class represents a Hangman game
 class Game
   attr_reader :hidden, :lives, :already_guessed
 
   def initialize(word)
     @word = word
-    @hidden = "_" * @word.length
+    @hidden = '_' * @word.length
     @lives = 8
     @already_guessed = Set.new
   end
@@ -39,10 +42,10 @@ class Game
   end
 
   def ended?
-    won? || lives == 0
+    won? || lives.zero?
   end
 
-  def to_json
+  def to_json(*_args)
     {
       'word' => @word,
       'hidden' => @hidden,
@@ -62,16 +65,11 @@ class Game
   end
 end
 
-SAVES_PATH = "saves/"
+SAVES_PATH = 'saves/'
 
 def generate_file_name
-  words = []
-  3.times do
-    words << get_random_word.capitalize
-  end
-  words.join("").concat(".json")
+  @words.sample(3).map(&:capitalize).join("").concat(".json")
 end
-
 def save_game(game)
   filename = generate_file_name
   serialized_game = JSON.dump(game.to_json)
@@ -82,10 +80,10 @@ def save_game(game)
 end
 
 def prompt_file_name
-  puts "Please enter the file name of the saved game"
+  puts 'Please enter the file name of the saved game'
   filename = gets.chomp
   until File.exist?(SAVES_PATH + filename)
-    puts "File you have entered does not exist, try again"
+    puts 'File you have entered does not exist, try again'
     filename = gets.chomp
   end
   filename
@@ -98,13 +96,12 @@ def load_game
   Game.from_json(game_data)
 end
 
-
-puts "Welcome to Hangman!"
-puts "(1) New game"
-puts "(2) Load game"
+puts 'Welcome to Hangman!'
+puts '(1) New game'
+puts '(2) Load game'
 mode = gets.chomp
-until mode == '1' || mode == '2'
-  print "Please, enter 1 or 2: "
+until %w[1 2].include?(mode)
+  print 'Please, enter 1 or 2: '
   mode = gets.chomp
 end
 
@@ -121,7 +118,7 @@ puts "Type 'save' at any point of the game to save"
 puts "Hidden word: #{game.hidden}"
 
 until game.ended?
-  print"Please enter a character: "
+  print 'Please enter a character: '
   guess = gets.chomp.downcase
 
   if guess == 'save'
@@ -135,7 +132,7 @@ until game.ended?
   end
 
   if game.make_guess(guess)
-    puts "Correct guess!"
+    puts 'Correct guess!'
   else
     puts "Wrong guess. You have #{game.lives} lives left."
   end
@@ -148,4 +145,3 @@ if game.won?
 else
   puts "You lost! The word was #{word}. Better luck next time!"
 end
-
